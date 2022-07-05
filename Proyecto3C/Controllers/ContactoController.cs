@@ -31,14 +31,18 @@ namespace Proyecto3C.Controllers
 
         // GET api/<ContactoController>/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Contacto>> GetContacto(int id)
+        public async Task<ActionResult<ContactoDTO>> GetContacto(int id)
         {
-            var contacto = await _context.Contactos.FirstOrDefaultAsync(x => x.Id == id);
+            var contacto = await _context.Contactos
+                .Include(clienteDb => clienteDb.xClientesContactos)
+                .ThenInclude(clienteContactoDb => clienteContactoDb.Cliente).FirstOrDefaultAsync(x => x.Id == id);
             if (contacto == null)
             {
                 return BadRequest("Cliente no existe");
             }
-            return contacto;
+
+            contacto.xClientesContactos = contacto.xClientesContactos.OrderBy(x => x.Orden).ToList();
+            return _mapper.Map<ContactoDTO>(contacto);
         }
 
         // POST api/<ContactoController>
