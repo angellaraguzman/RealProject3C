@@ -1,4 +1,6 @@
-﻿namespace Proyecto3C.Entities
+﻿using System.Text.Json.Serialization;
+
+namespace Proyecto3C.Entities
 {
     public class Cliente
     {
@@ -9,7 +11,7 @@
         public string Rfc { get; set; }
         public string Curp { get; set; }
         public string Domicilio { get; set; }
-
+        [JsonIgnore]
         public List<xClienteContacto> xClientesContactos { get; set; }
     }
 }

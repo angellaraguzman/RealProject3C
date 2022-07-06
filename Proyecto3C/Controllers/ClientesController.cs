@@ -31,14 +31,17 @@ namespace Proyecto3C.Controllers
 
         // GET api/<ClientesController>/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Cliente>> GetCliente(int id)
+        public async Task<ActionResult<ClienteDTO>> GetCliente(int id)
         {
-            var cliente = await _context.Clientes.FirstOrDefaultAsync(x => x.Id == id);
+            var cliente = await _context.Clientes
+                .Include(clienteDb => clienteDb.xClientesContactos)
+                .ThenInclude(clientecontactoDb => clientecontactoDb.Contacto)
+                .FirstOrDefaultAsync(x => x.Id == id);
             if (cliente == null)
             {
                 return BadRequest("Cliente not found");
             }
-            return Ok(cliente);
+            return _mapper.Map<ClienteDTO>(cliente);
         }
 
         // POST api/<ClientesController>
