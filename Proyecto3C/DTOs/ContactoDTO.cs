@@ -1,14 +1,11 @@
-﻿using System.Text.Json.Serialization;
-
-namespace Proyecto3C.Entities
+﻿namespace Proyecto3C.DTOs
 {
-    public class Contacto
+    public class ContactoDTO
     {
         public int Id { get; set; }
         public string NombreCompleto { get; set; }
         public string Correo { get; set; }
         public string Telefono { get; set; }
-        [JsonIgnore]
-        public List<xClienteContacto> xClientesContactos { get; set; }
+        public List<ClienteDTO> Clientes { get; set; }
     }
 }
