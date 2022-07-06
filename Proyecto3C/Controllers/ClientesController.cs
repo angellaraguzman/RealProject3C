@@ -31,14 +31,17 @@ namespace Proyecto3C.Controllers
 
         // GET api/<ClientesController>/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Cliente>> GetCliente(int id)
+        public async Task<ActionResult<ClienteDTO>> GetCliente(int id)
         {
-            var cliente = await _context.Clientes.FirstOrDefaultAsync(x => x.Id == id);
+            var cliente = await _context.Clientes
+                .Include(clienteDb => clienteDb.xClientesContactos)
+                .ThenInclude(clientecontactoDb => clientecontactoDb.Contacto)
+                .FirstOrDefaultAsync(x => x.Id == id);
             if (cliente == null)
             {
                 return BadRequest("Cliente not found");
             }
-            return Ok(cliente);
+            return _mapper.Map<ClienteDTO>(cliente);
         }
 
         // POST api/<ClientesController>
@@ -57,17 +60,16 @@ namespace Proyecto3C.Controllers
         }
         // PUT api/<ClientesController>/5
         [HttpPut("{id}")]
-        public async Task<ActionResult> EditCliente(Cliente cliente, int id)
+        public async Task<ActionResult> EditCliente(ClienteCreacionDTO clienteCreacionDTO, int id)
         {
-            if (cliente.Id != id)
-            {
-                return BadRequest("El id del cliente no coincide con el Id seleccionado");
-            }
             var clienteExist = await _context.Clientes.AnyAsync(x => x.Id == id);
             if (!clienteExist)
             {
                 return BadRequest("El cliente que buscas no existe");
             }
+            var cliente = _mapper.Map<Cliente>(clienteCreacionDTO);
+            cliente.Id = id;
+
             _context.Update(cliente);
             await _context.SaveChangesAsync();
             return Ok();
