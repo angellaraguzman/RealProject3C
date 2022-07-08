@@ -34,38 +34,51 @@ namespace Proyecto3C.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<ContactoDTO>> GetContacto(int id)
         {
-
+            //Consulta para traer al contacto deseado por medio de ID 
             var contacto = await _context.Contactos
                 .Include(clienteDb => clienteDb.xClientesContactos)
                 .ThenInclude(clienteContactoDb => clienteContactoDb.Cliente).FirstOrDefaultAsync(x => x.Id == id);
+
             if (contacto == null)
             {
                 return BadRequest("Cliente no existe");
             }
-
+            //Se muestran los clientes ordenados por Orden 
             contacto.xClientesContactos = contacto.xClientesContactos.OrderBy(x => x.Orden).ToList();
             return _mapper.Map<ContactoDTO>(contacto);
         }
 
         // POST api/<ContactoController>
         [HttpPost]
-        public async Task<ActionResult> Post(ContactoCreacionDTO contactoCreacion )
+        public async Task<ActionResult> CreateContacto(ContactoCreacionDTO contactoCreacion )
         {
+            //Revisar si se ingresó un cliente al contacto
             if (contactoCreacion.ClientesId == null)
             {
                 return BadRequest("No se puede crear un libro sin autores");
             }
+
+            //Ingresar a los clientes a contactos por medio de ID
             var contactos = await _context.Clientes
                 .Where(clienteDb => contactoCreacion.ClientesId.Contains(clienteDb.Id))
                 .Select(x => x.Id)
                 .ToListAsync();
-           
+
+            //Validación para que el correo sea unico en la DB
+            var contactoEmail = await _context.Contactos.AnyAsync(x => x.Correo == contactoCreacion.Correo);
+            if (contactoEmail)
+            {
+                return BadRequest("Ya existe ese correo");
+            }
+
+            //Verificar que los autores ingresados sean válidos
             if (contactoCreacion.ClientesId.Count != contactos.Count)
             {
                 return BadRequest("No existe uno de los Clientes ingresados");
             }
-            var contacto = _mapper.Map<Contacto>(contactoCreacion);
 
+            var contacto = _mapper.Map<Contacto>(contactoCreacion);
+            //Ordenar a los clientes del contacto dependiendo su número de orden 
             AsignarOrdenClientes(contacto);
 
             _context.Add(contacto);
@@ -111,6 +124,7 @@ namespace Proyecto3C.Controllers
         }
         private void AsignarOrdenClientes(Contacto contacto)
         {
+            //Ordenamiento de los clientes dependiendo su numero de orden
             if (contacto.xClientesContactos != null)
             {
                 for (int i = 0; i < contacto.xClientesContactos.Count; i++)
@@ -119,5 +133,6 @@ namespace Proyecto3C.Controllers
                 }
             }
         }
+       
     }
 }
