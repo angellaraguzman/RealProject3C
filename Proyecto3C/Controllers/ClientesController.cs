@@ -33,10 +33,12 @@ namespace Proyecto3C.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<ClienteDTO>> GetCliente(int id)
         {
+            //Consulta que concatena al cliente con sus contactos
             var cliente = await _context.Clientes
                 .Include(clienteDb => clienteDb.xClientesContactos)
                 .ThenInclude(clientecontactoDb => clientecontactoDb.Contacto)
                 .FirstOrDefaultAsync(x => x.Id == id);
+            //Buscar existencia del cliente
             if (cliente == null)
             {
                 return BadRequest("Cliente not found");
@@ -48,16 +50,20 @@ namespace Proyecto3C.Controllers
         [HttpPost]
         public async Task<ActionResult> CreateCliente(ClienteCreacionDTO clienteCreacion)
         {
+            //Ya que el enum TipoPersona cuenta con dos opciones, sólo se aceptan el 1 y 2
             if ((int)clienteCreacion.TipoPersona < 1 || (int)clienteCreacion.TipoPersona > 2) 
             {
                 return BadRequest("Ingresaste un tipo de persona que no es válido");
             }
 
+            //Verificación del nombre del cliente para que no haya duplicados
             var existeClienteMismoNombre = await _context.Clientes.AnyAsync(x => x.NombreCompleto == clienteCreacion.NombreCompleto);
             if (existeClienteMismoNombre)
             {
                 return BadRequest("Ya existe ese nombre");
             }
+
+            //Mapeo y guardado de un nuevo cliente
             var cliente = _mapper.Map<Cliente>(clienteCreacion);
             _context.Add(cliente);
             await _context.SaveChangesAsync();
@@ -67,11 +73,14 @@ namespace Proyecto3C.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult> EditCliente(ClienteCreacionDTO clienteCreacionDTO, int id)
         {
+            //Verificar que el cliente existe
             var clienteExist = await _context.Clientes.AnyAsync(x => x.Id == id);
             if (!clienteExist)
             {
                 return BadRequest("El cliente que buscas no existe");
             }
+
+            //Mapear y actualizar y guardar cliente
             var cliente = _mapper.Map<Cliente>(clienteCreacionDTO);
             cliente.Id = id;
 
@@ -84,16 +93,18 @@ namespace Proyecto3C.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteClient(int id)
         {
+            //Verificar que el cliente existe
             var clienteExist = await _context.Clientes.AnyAsync(x => x.Id == id);
 
             if (!clienteExist)
             {
                 return BadRequest("El cliente que buscas no existe");
             }
-
+            //Eliminar cliente y guardar cambios
             _context.Remove(new Cliente() { Id = id });
             await _context.SaveChangesAsync();
             return Ok();
         }
+       
     }
 }
