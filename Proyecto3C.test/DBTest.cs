@@ -13,7 +13,7 @@ namespace Proyecto3C.test
     public class DBTest
     {
         //Para que la prueba unitaria pueda contruir su propia base de datos
-        protected ApplicationDbContext ContruirContext (string dbTest)
+        protected ApplicationDbContext ConstruirContext (string dbTest)
         {
             var opciones = new DbContextOptionsBuilder<ApplicationDbContext>()
                 .UseInMemoryDatabase(dbTest).Options;
